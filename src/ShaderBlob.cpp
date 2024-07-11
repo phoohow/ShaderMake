@@ -1,35 +1,13 @@
-/*
-* Copyright (c) 2014-2021, NVIDIA CORPORATION. All rights reserved.
-*
-* Permission is hereby granted, free of charge, to any person obtaining a
-* copy of this software and associated documentation files (the "Software"),
-* to deal in the Software without restriction, including without limitation
-* the rights to use, copy, modify, merge, publish, distribute, sublicense,
-* and/or sell copies of the Software, and to permit persons to whom the
-* Software is furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-* DEALINGS IN THE SOFTWARE.
-*/
-
-#include <ShaderMake/ShaderBlob.h>
+#include <shaderMake/ShaderBlob.h>
 
 #include <sstream>
 #include <cstring>
 
-namespace ShaderMake
+namespace shaderMake
 {
 
-static const char* g_BlobSignature = "NVSP";
-static size_t g_BlobSignatureSize = 4;
+static const char* g_BlobSignature     = "NVSP";
+static size_t      g_BlobSignatureSize = 4;
 
 bool FindPermutationInBlob(const void* blob, size_t blobSize, const ShaderConstant* constants, uint32_t numConstants, const void** pBinary, size_t* pSize)
 {
@@ -44,7 +22,7 @@ bool FindPermutationInBlob(const void* blob, size_t blobSize, const ShaderConsta
         if (numConstants == 0)
         {
             *pBinary = blob;
-            *pSize = blobSize;
+            *pSize   = blobSize;
 
             return true; // this blob is not a permutation blob, and no permutation is requested
         }
@@ -82,13 +60,13 @@ bool FindPermutationInBlob(const void* blob, size_t blobSize, const ShaderConsta
             const char* binary = static_cast<const char*>(blob) + sizeof(ShaderBlobEntry) + header->permutationSize;
 
             *pBinary = binary;
-            *pSize = header->dataSize;
+            *pSize   = header->dataSize;
 
             return true;
         }
 
         size_t offset = sizeof(ShaderBlobEntry) + header->dataSize + header->permutationSize;
-        blob = static_cast<const char*>(blob) + offset;
+        blob          = static_cast<const char*>(blob) + offset;
         blobSize -= offset;
     }
 
@@ -129,7 +107,7 @@ void EnumeratePermutationsInBlob(const void* blob, size_t blobSize, std::vector<
             permutations.push_back("<default>");
 
         size_t offset = sizeof(ShaderBlobEntry) + header->dataSize + header->permutationSize;
-        blob = static_cast<const char*>(blob) + offset;
+        blob          = static_cast<const char*>(blob) + offset;
         blobSize -= offset;
     }
 }
@@ -170,21 +148,21 @@ std::string FormatShaderNotFoundMessage(const void* blob, size_t blobSize, const
 
 bool WriteFileHeader(
     WriteFileCallback write,
-    void* context)
+    void*             context)
 {
     return write(g_BlobSignature, g_BlobSignatureSize, context);
 }
 
 bool WritePermutation(
-    WriteFileCallback write,
-    void* context,
+    WriteFileCallback  write,
+    void*              context,
     const std::string& permutationKey,
-    const void* binary,
-    size_t binarySize)
+    const void*        binary,
+    size_t             binarySize)
 {
     ShaderBlobEntry binaryEntry{};
     binaryEntry.permutationSize = (uint32_t)permutationKey.size();
-    binaryEntry.dataSize = (uint32_t)binarySize;
+    binaryEntry.dataSize        = (uint32_t)binarySize;
 
     bool success;
     success = write(&binaryEntry, sizeof(binaryEntry), context);
@@ -193,4 +171,4 @@ bool WritePermutation(
     return success;
 }
 
-} // namespace ShaderMake
+} // namespace shaderMake

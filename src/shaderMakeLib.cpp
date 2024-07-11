@@ -1,5 +1,6 @@
 #include "argparse.h"
 #include <shaderMake/ShaderBlob.h>
+#include <shaderMake/shaderMakeLib.h>
 
 #include <sstream>
 #include <fstream>
@@ -1983,7 +1984,7 @@ void SignalHandler(int32_t sig)
     Printf(RED "Aborting...\n");
 }
 
-int32_t main(int32_t argc, const char** argv)
+int createShaderBinary(int argc, char** argv)
 {
     // Init timer
     Timer_Init();
@@ -1997,7 +1998,7 @@ int32_t main(int32_t argc, const char** argv)
 
     // Parse command line
     const char* self = argv[0];
-    if (!g_Options.Parse(argc, argv))
+    if (!g_Options.Parse(argc, (const char**)argv))
         return 1;
 
     // Set envvar
@@ -2202,4 +2203,19 @@ int32_t main(int32_t argc, const char** argv)
         Printf(WHITE "All %s shaders are up to date.\n", g_Options.platformName);
 
     return (g_Terminate || g_FailedTaskCount) ? 1 : 0;
+}
+
+void createShaderBinary(std::vector<std::string> params)
+{
+    int          argc;
+    const char** argv = new const char*[params.size() + 1];
+    for (int index = 0; index < params.size(); ++index)
+        argv[index] = params[index].c_str();
+
+    createShaderBinary(params.size(), (char**)argv);
+
+    g_ShaderBlobs.clear();
+    g_TaskData.resize(0);
+
+    delete argv;
 }

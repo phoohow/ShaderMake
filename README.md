@@ -1,8 +1,4 @@
-# ShaderMake
-
-[![Build Status](https://github.com/NVIDIAGameWorks/ShaderMake/actions/workflows/build.yml/badge.svg)](https://github.com/NVIDIAGameWorks/ShaderMake/actions/workflows/build.yml)
-
-ShaderMake is a frond-end tool for batch multi-threaded shader compilation developed by NVIDIA DevTech. It is compatible with Microsoft FXC and DXC compilers by calling them via API functions or executing them through command line.
+# shaderMake
 
 Features:
 
@@ -10,7 +6,7 @@ Features:
 - Outputs results in 3 formats: native binary, header file, and a [binary blob](#user-content-shader-blob-api) containing all permutations for a given shader.
 - Minimizes the number of re-compilation tasks by tracking file modification times and include trees.
 
-During project deployment, the *CMake* script automatically searches for `fxc` and `dxc` and sets these variables:
+During project deployment, the *xmake* script automatically searches for `fxc` and `dxc` and sets these variables:
 
 - `FXC_PATH` - `fxc` from *Windows SDK*
 - `DXC_PATH` - `dxc` from *Windows SDK*
@@ -21,7 +17,7 @@ During project deployment, the *CMake* script automatically searches for `fxc` a
 Usage:
 
 ```
-ShaderMake.exe -p {DXBC|DXIL|SPIRV} --binary [--header --blob] -c "path/to/config"
+shaderMake.exe -p {DXBC|DXIL|SPIRV} --binary [--header --blob] -c "path/to/config"
         -o "path/to/output" --compiler "path/to/compiler" [other options]
         -D DEF1 -D DEF2=1 ... -I "path1" -I "path2" ...
 
@@ -106,10 +102,12 @@ Additionally, the config file parser supports:
 
 ## Shader blob API
 
-When the `--blob` command line argument is specified, ShaderMake will package multiple permutations for the same shader into a single "blob" file. These files use a custom format that is somewhat similar to regular TAR.
+When the `--blob` command line argument is specified, shaderMake will package multiple permutations for the same shader into a single "blob" file. These files use a custom format that is somewhat similar to regular TAR.
 
-ShaderMake provides a small library with parsing functions to use these blob files in applications. This library can be statically linked with an application by including ShaderMake as a git submodule and linking the `ShaderMakeBlob` target to your application:
+shaderMake provides a small library with parsing functions to use these blob files in applications. This library can be statically linked with an application by including shaderMake as a git submodule and linking the `shaderMakeBlob` target to your application:
 
-    target_link_libraries(my_target PRIVATE ShaderMakeBlob)
+    target_link_libraries(my_target PRIVATE shaderMakeBlob)
 
-Then include `<ShaderMake/ShaderBlob.h>` and use the `ShaderMake::FindPermutationInBlob` to locate a specific shader version in a blob. If that is unsuccessful, the `ShaderMake::EnumeratePermutationsInBlob` and/or `ShaderMake::FormatShaderNotFoundMessage` functions can help you provide a helpful error message to the user.
+Then include `<shaderMake/ShaderBlob.h>` and use the `shaderMake::FindPermutationInBlob` to locate a specific shader version in a blob. If that is unsuccessful, the `shaderMake::EnumeratePermutationsInBlob` and/or `shaderMake::FormatShaderNotFoundMessage` functions can help you provide a helpful error message to the user.
+
+
