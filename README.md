@@ -113,3 +113,5 @@ ShaderMake provides a small library with parsing functions to use these blob fil
     target_link_libraries(my_target PRIVATE ShaderMakeBlob)
 
 Then include `<ShaderMake/ShaderBlob.h>` and use the `ShaderMake::FindPermutationInBlob` to locate a specific shader version in a blob. If that is unsuccessful, the `ShaderMake::EnumeratePermutationsInBlob` and/or `ShaderMake::FormatShaderNotFoundMessage` functions can help you provide a helpful error message to the user.
+
+
