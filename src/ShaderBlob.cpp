@@ -28,8 +28,8 @@
 namespace ShaderMake
 {
 
-static const char* g_BlobSignature = "NVSP";
-static size_t g_BlobSignatureSize = 4;
+static const char* g_BlobSignature     = "NVSP";
+static size_t      g_BlobSignatureSize = 4;
 
 bool FindPermutationInBlob(const void* blob, size_t blobSize, const ShaderConstant* constants, uint32_t numConstants, const void** pBinary, size_t* pSize)
 {
@@ -44,7 +44,7 @@ bool FindPermutationInBlob(const void* blob, size_t blobSize, const ShaderConsta
         if (numConstants == 0)
         {
             *pBinary = blob;
-            *pSize = blobSize;
+            *pSize   = blobSize;
 
             return true; // this blob is not a permutation blob, and no permutation is requested
         }
@@ -82,13 +82,13 @@ bool FindPermutationInBlob(const void* blob, size_t blobSize, const ShaderConsta
             const char* binary = static_cast<const char*>(blob) + sizeof(ShaderBlobEntry) + header->permutationSize;
 
             *pBinary = binary;
-            *pSize = header->dataSize;
+            *pSize   = header->dataSize;
 
             return true;
         }
 
         size_t offset = sizeof(ShaderBlobEntry) + header->dataSize + header->permutationSize;
-        blob = static_cast<const char*>(blob) + offset;
+        blob          = static_cast<const char*>(blob) + offset;
         blobSize -= offset;
     }
 
@@ -129,7 +129,7 @@ void EnumeratePermutationsInBlob(const void* blob, size_t blobSize, std::vector<
             permutations.push_back("<default>");
 
         size_t offset = sizeof(ShaderBlobEntry) + header->dataSize + header->permutationSize;
-        blob = static_cast<const char*>(blob) + offset;
+        blob          = static_cast<const char*>(blob) + offset;
         blobSize -= offset;
     }
 }
@@ -170,21 +170,21 @@ std::string FormatShaderNotFoundMessage(const void* blob, size_t blobSize, const
 
 bool WriteFileHeader(
     WriteFileCallback write,
-    void* context)
+    void*             context)
 {
     return write(g_BlobSignature, g_BlobSignatureSize, context);
 }
 
 bool WritePermutation(
-    WriteFileCallback write,
-    void* context,
+    WriteFileCallback  write,
+    void*              context,
     const std::string& permutationKey,
-    const void* binary,
-    size_t binarySize)
+    const void*        binary,
+    size_t             binarySize)
 {
     ShaderBlobEntry binaryEntry{};
     binaryEntry.permutationSize = (uint32_t)permutationKey.size();
-    binaryEntry.dataSize = (uint32_t)binarySize;
+    binaryEntry.dataSize        = (uint32_t)binarySize;
 
     bool success;
     success = write(&binaryEntry, sizeof(binaryEntry), context);

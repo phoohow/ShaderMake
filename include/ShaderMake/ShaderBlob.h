@@ -26,6 +26,12 @@
 #include <string>
 #include <cstdint>
 
+#ifdef _WIN32
+#    define EXPORT_DLL __declspec(dllexport)
+#else
+#    define EXPORT_DLL
+#endif
+
 namespace ShaderMake
 {
 
@@ -41,41 +47,36 @@ struct ShaderBlobEntry
     uint32_t dataSize;
 };
 
-bool FindPermutationInBlob(
-    const void* blob,
-    size_t blobSize,
+EXPORT_DLL bool FindPermutationInBlob(
+    const void*           blob,
+    size_t                blobSize,
     const ShaderConstant* constants,
-    uint32_t numConstants,
-    const void** pBinary,
-    size_t* pSize
-);
+    uint32_t              numConstants,
+    const void**          pBinary,
+    size_t*               pSize);
 
-void EnumeratePermutationsInBlob(
-    const void* blob,
-    size_t blobSize,
-    std::vector<std::string>& permutations
-);
+EXPORT_DLL void EnumeratePermutationsInBlob(
+    const void*               blob,
+    size_t                    blobSize,
+    std::vector<std::string>& permutations);
 
-std::string FormatShaderNotFoundMessage(
-    const void* blob,
-    size_t blobSize,
+EXPORT_DLL std::string FormatShaderNotFoundMessage(
+    const void*           blob,
+    size_t                blobSize,
     const ShaderConstant* constants,
-    uint32_t numConstants
-);
+    uint32_t              numConstants);
 
 typedef bool (*WriteFileCallback)(const void* data, size_t size, void* context);
 
-bool WriteFileHeader(
-	WriteFileCallback write,
-    void* context
-);
+EXPORT_DLL bool WriteFileHeader(
+    WriteFileCallback write,
+    void*             context);
 
-bool WritePermutation(
-	WriteFileCallback write,
-    void* context,
-	const std::string& permutationKey,
-	const void* binary,
-	size_t binarySize
-);
+EXPORT_DLL bool WritePermutation(
+    WriteFileCallback  write,
+    void*              context,
+    const std::string& permutationKey,
+    const void*        binary,
+    size_t             binarySize);
 
 } // namespace ShaderMake

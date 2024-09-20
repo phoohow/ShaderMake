@@ -40,32 +40,32 @@ THE SOFTWARE.
 #include <system_error>
 
 #ifdef _WIN32
-    #include <d3dcompiler.h> // FXC
-    #include <dxcapi.h> // DXC
+#    include <d3dcompiler.h> // FXC
+#    include <dxcapi.h>      // DXC
 
-    #include <wrl/client.h>
-    using Microsoft::WRL::ComPtr;
+#    include <wrl/client.h>
+using Microsoft::WRL::ComPtr;
 #else
-    #include <unistd.h>
-    #include <limits.h>
+#    include <unistd.h>
+#    include <limits.h>
 #endif
 
 using namespace std;
 namespace fs = filesystem;
 
-#define _L(x)  __L(x)
-#define __L(x) L ## x
-#define UNUSED(x) ((void)(x))
+#define _L(x)       __L(x)
+#define __L(x)      L##x
+#define UNUSED(x)   ((void)(x))
 #define COUNT_OF(a) (sizeof(a) / sizeof(a[0]))
 
 #define USE_GLOBAL_OPTIMIZATION_LEVEL 0xFF
-#define SPIRV_SPACES_NUM 8
-#define PDB_DIR "PDB"
+#define SPIRV_SPACES_NUM              8
+#define PDB_DIR                       "PDB"
 
 #ifdef _MSC_VER
-    #define popen _popen
-    #define pclose _pclose
-    #define putenv _putenv
+#    define popen  _popen
+#    define pclose _pclose
+#    define putenv _putenv
 #endif
 
 enum Platform : uint8_t
@@ -81,60 +81,62 @@ struct Options
 {
     vector<fs::path> includeDirs;
     vector<fs::path> relaxedIncludes;
-    vector<string> defines;
-    vector<string> spirvExtensions = {"SPV_EXT_descriptor_indexing", "KHR"};
-    fs::path configFile;
-    const char* platformName = nullptr;
-    const char* outputDir = nullptr;
-    const char* shaderModel = "6_5";
-    const char* vulkanVersion = "1.3";
-    const char* sourceDir = "";
-    const char* compiler = nullptr;
-    const char* outputExt = nullptr;
-    const char* vulkanMemoryLayout = nullptr;
-    uint32_t sRegShift = 100; // must be first (or change "DxcCompile" code)
-    uint32_t tRegShift = 200;
-    uint32_t bRegShift = 300;
-    uint32_t uRegShift = 400;
-    uint32_t optimizationLevel = 3;
-    Platform platform = DXBC;
-    bool serial = false;
-    bool flatten = false;
-    bool force = false;
-    bool help = false;
-    bool binary = false;
-    bool header = false;
-    bool binaryBlob = false;
-    bool headerBlob = false;
-    bool continueOnError = false;
-    bool warningsAreErrors = false;
-    bool allResourcesBound = false;
-    bool pdb = false;
-    bool embedPdb = false;
-    bool stripReflection = false;
-    bool matrixRowMajor = false;
-    bool hlsl2021 = false;
-    bool verbose = false;
-    bool colorize = false;
-    bool useAPI = false;
-    bool slang = false;
-    bool noRegShifts = false;
-    int retryCount = 10; // default 10 retries for compilation task sub-process failures
+    vector<string>   defines;
+    vector<string>   spirvExtensions = {"SPV_EXT_descriptor_indexing", "KHR"};
+    fs::path         configFile;
+    const char*      platformName       = nullptr;
+    const char*      outputDir          = nullptr;
+    const char*      shaderModel        = "6_5";
+    const char*      vulkanVersion      = "1.3";
+    const char*      sourceDir          = "";
+    const char*      compiler           = nullptr;
+    const char*      outputExt          = nullptr;
+    const char*      vulkanMemoryLayout = nullptr;
+    uint32_t         sRegShift          = 100; // must be first (or change "DxcCompile" code)
+    uint32_t         tRegShift          = 200;
+    uint32_t         bRegShift          = 300;
+    uint32_t         uRegShift          = 400;
+    uint32_t         optimizationLevel  = 3;
+    Platform         platform           = DXBC;
+    bool             serial             = false;
+    bool             flatten            = false;
+    bool             force              = false;
+    bool             help               = false;
+    bool             binary             = false;
+    bool             header             = false;
+    bool             binaryBlob         = false;
+    bool             headerBlob         = false;
+    bool             continueOnError    = false;
+    bool             warningsAreErrors  = false;
+    bool             allResourcesBound  = false;
+    bool             pdb                = false;
+    bool             embedPdb           = false;
+    bool             stripReflection    = false;
+    bool             matrixRowMajor     = false;
+    bool             hlsl2021           = false;
+    bool             verbose            = false;
+    bool             colorize           = false;
+    bool             useAPI             = false;
+    bool             slang              = false;
+    bool             noRegShifts        = false;
+    int              retryCount         = 10; // default 10 retries for compilation task sub-process failures
 
     bool Parse(int32_t argc, const char** argv);
 
     inline bool IsBlob() const
-    { return binaryBlob || headerBlob; }
+    {
+        return binaryBlob || headerBlob;
+    }
 };
 
 struct ConfigLine
 {
     vector<string> defines;
-    const char* source = nullptr;
-    const char* entryPoint = "main";
-    const char* profile = nullptr;
-    const char* outputDir = nullptr;
-    const char* outputSuffix = nullptr;
+    const char*    source       = nullptr;
+    const char*    entryPoint   = "main";
+    const char*    profile      = nullptr;
+    const char*    outputDir    = nullptr;
+    const char*    outputSuffix = nullptr;
 
     uint32_t optimizationLevel = USE_GLOBAL_OPTIMIZATION_LEVEL;
 
@@ -144,12 +146,12 @@ struct ConfigLine
 struct TaskData
 {
     vector<string> defines;
-    string source;
-    string entryPoint;
-    string profile;
-    string outputFileWithoutExt;
-    string combinedDefines;
-    uint32_t optimizationLevel = 3;
+    string         source;
+    string         entryPoint;
+    string         profile;
+    string         outputFileWithoutExt;
+    string         combinedDefines;
+    uint32_t       optimizationLevel = 3;
 };
 
 struct BlobEntry
@@ -158,18 +160,18 @@ struct BlobEntry
     string combinedDefines;
 };
 
-Options g_Options;
+Options                           g_Options;
 map<fs::path, fs::file_time_type> g_HierarchicalUpdateTimes;
-map<string, vector<BlobEntry>> g_ShaderBlobs;
-vector<TaskData> g_TaskData;
-mutex g_TaskMutex;
-atomic<uint32_t> g_ProcessedTaskCount;
-atomic<int> g_TaskRetryCount;
-atomic<bool> g_Terminate = false;
-atomic<uint32_t> g_FailedTaskCount = 0;
-uint32_t g_OriginalTaskCount;
-const char* g_OutputExt = nullptr;
-bool g_UseSlang = false;
+map<string, vector<BlobEntry>>    g_ShaderBlobs;
+vector<TaskData>                  g_TaskData;
+mutex                             g_TaskMutex;
+atomic<uint32_t>                  g_ProcessedTaskCount;
+atomic<int>                       g_TaskRetryCount;
+atomic<bool>                      g_Terminate       = false;
+atomic<uint32_t>                  g_FailedTaskCount = 0;
+uint32_t                          g_OriginalTaskCount;
+const char*                       g_OutputExt = nullptr;
+bool                              g_UseSlang  = false;
 
 static const char* g_PlatformNames[] = {
     "DXBC",
@@ -190,17 +192,17 @@ static const char* g_PlatformSlangTargets[] = {
 };
 
 #if 1
-    #define RED "\x1b[31m"
-    #define GRAY "\x1b[90m"
-    #define WHITE "\x1b[0m"
-    #define GREEN "\x1b[32m"
-    #define YELLOW "\x1b[33m"
+#    define RED    "\x1b[31m"
+#    define GRAY   "\x1b[90m"
+#    define WHITE  "\x1b[0m"
+#    define GREEN  "\x1b[32m"
+#    define YELLOW "\x1b[33m"
 #else
-    #define RED ""
-    #define GRAY ""
-    #define WHITE ""
-    #define GREEN ""
-    #define YELLOW ""
+#    define RED    ""
+#    define GRAY   ""
+#    define WHITE  ""
+#    define GREEN  ""
+#    define YELLOW ""
 #endif
 
 /*
@@ -217,13 +219,19 @@ Naming convention:
 //=====================================================================================================================
 
 inline uint32_t HashToUint(size_t hash)
-{ return uint32_t(hash) ^ (uint32_t(hash >> 32)); }
+{
+    return uint32_t(hash) ^ (uint32_t(hash >> 32));
+}
 
 inline string PathToString(fs::path path)
-{ return path.lexically_normal().make_preferred().string(); }
+{
+    return path.lexically_normal().make_preferred().string();
+}
 
 inline wstring AnsiToWide(const string& s)
-{ return wstring(s.begin(), s.end()); }
+{
+    return wstring(s.begin(), s.end());
+}
 
 inline fs::path RemoveLeadingDotDots(const fs::path& path)
 {
@@ -242,10 +250,14 @@ inline fs::path RemoveLeadingDotDots(const fs::path& path)
 }
 
 inline bool IsSpace(char ch)
-{ return strchr(" \t\r\n", ch) != nullptr; }
+{
+    return strchr(" \t\r\n", ch) != nullptr;
+}
 
 inline bool HasRepeatingSpace(char a, char b)
-{ return (a == b) && a == ' '; }
+{
+    return (a == b) && a == ' ';
+}
 
 inline string EscapePath(const string& s)
 {
@@ -273,7 +285,7 @@ inline void TrimConfigLine(string& s)
 
 void TokenizeConfigLine(char* in, vector<const char*>& tokens)
 {
-    char* out = in;
+    char* out   = in;
     char* token = out;
 
     // Some magic to correctly tokenize spaces in ""
@@ -335,13 +347,13 @@ void Printf(const char* format, ...)
     char fixedFormat[1024]; // TODO: let's assume that we always fit
     if (!g_Options.colorize)
     {
-        const char* in = format;
-        char* out = fixedFormat;
+        const char* in  = format;
+        char*       out = fixedFormat;
 
         while (*in)
         {
             if (*in == '\x1b')
-                while( *in++ != 'm' );
+                while (*in++ != 'm');
 
             *out++ = *in++;
         }
@@ -379,7 +391,7 @@ public:
 
     DataOutputContext(const char* file, bool textMode)
     {
-        stream = fopen(file, textMode ? "w": "wb");
+        stream = fopen(file, textMode ? "w" : "wb");
         if (!stream)
             Printf(RED "ERROR: Can't open file '%s' for writing!\n", file);
     }
@@ -419,10 +431,14 @@ public:
     }
 
     void WriteTextPreamble(const char* shaderName)
-    { fprintf(stream, "const uint8_t %s[] = {", shaderName); }
+    {
+        fprintf(stream, "const uint8_t %s[] = {", shaderName);
+    }
 
     void WriteTextEpilog()
-    { fprintf(stream, "\n};\n"); }
+    {
+        fprintf(stream, "\n};\n");
+    }
 
     bool WriteDataAsBinary(const void* data, size_t size)
     {
@@ -434,10 +450,14 @@ public:
 
     // For use as a callback in "WriteFileHeader" and "WritePermutation" functions
     static bool WriteDataAsTextCallback(const void* data, size_t size, void* context)
-    { return ((DataOutputContext*)context)->WriteDataAsText(data, size); }
+    {
+        return ((DataOutputContext*)context)->WriteDataAsText(data, size);
+    }
 
     static bool WriteDataAsBinaryCallback(const void* data, size_t size, void* context)
-    { return ((DataOutputContext*)context)->WriteDataAsBinary(data, size); }
+    {
+        return ((DataOutputContext*)context)->WriteDataAsBinary(data, size);
+    }
 
 private:
     uint32_t m_lineLength = 129;
@@ -479,19 +499,19 @@ void UpdateProgress(const TaskData& taskData, bool isSucceeded, bool willRetry, 
         if (message)
         {
             Printf(YELLOW "[%5.1f%%] %s %s {%s} {%s}\n%s",
-                progress, g_Options.platformName,
-                taskData.source.c_str(),
-                taskData.entryPoint.c_str(),
-                taskData.combinedDefines.c_str(),
-                message);
+                   progress, g_Options.platformName,
+                   taskData.source.c_str(),
+                   taskData.entryPoint.c_str(),
+                   taskData.combinedDefines.c_str(),
+                   message);
         }
         else
         {
             Printf(GREEN "[%5.1f%%]" GRAY " %s" WHITE " %s" GRAY " {%s}" WHITE " {%s}\n",
-                progress, g_Options.platformName,
-                taskData.source.c_str(),
-                taskData.entryPoint.c_str(),
-                taskData.combinedDefines.c_str());
+                   progress, g_Options.platformName,
+                   taskData.source.c_str(),
+                   taskData.entryPoint.c_str(),
+                   taskData.combinedDefines.c_str());
         }
     }
     else
@@ -500,10 +520,10 @@ void UpdateProgress(const TaskData& taskData, bool isSucceeded, bool willRetry, 
         if (willRetry)
         {
             Printf(YELLOW "[ RETRY-QUEUED ] %s %s {%s} {%s}\n",
-                g_Options.platformName,
-                taskData.source.c_str(),
-                taskData.entryPoint.c_str(),
-                taskData.combinedDefines.c_str());
+                   g_Options.platformName,
+                   taskData.source.c_str(),
+                   taskData.entryPoint.c_str(),
+                   taskData.combinedDefines.c_str());
 
             lock_guard<mutex> guard(g_TaskMutex);
             g_TaskData.push_back(taskData);
@@ -518,10 +538,10 @@ void UpdateProgress(const TaskData& taskData, bool isSucceeded, bool willRetry, 
                    taskData.entryPoint.c_str(),
                    taskData.combinedDefines.c_str(),
                    message ? message : "<no message text>!\n");
-            
+
             if (!g_Options.continueOnError)
                 g_Terminate = true;
-            
+
             ++g_FailedTaskCount;
         }
     }
@@ -534,7 +554,9 @@ void UpdateProgress(const TaskData& taskData, bool isSucceeded, bool willRetry, 
 double g_TicksToMilliseconds;
 
 double Timer_ConvertTicksToMilliseconds(uint64_t ticks)
-{ return (double)ticks * g_TicksToMilliseconds; }
+{
+    return (double)ticks * g_TicksToMilliseconds;
+}
 
 void Timer_Init()
 {
@@ -568,16 +590,32 @@ uint64_t Timer_GetTicks()
 //=====================================================================================================================
 
 int AddInclude(struct argparse* self, const struct argparse_option* option)
-{ ((Options*)(option->data))->includeDirs.push_back(*(const char**)option->value); UNUSED(self); return 0; }
+{
+    ((Options*)(option->data))->includeDirs.push_back(*(const char**)option->value);
+    UNUSED(self);
+    return 0;
+}
 
 int AddGlobalDefine(struct argparse* self, const struct argparse_option* option)
-{ ((Options*)(option->data))->defines.push_back(*(const char**)option->value); UNUSED(self); return 0; }
+{
+    ((Options*)(option->data))->defines.push_back(*(const char**)option->value);
+    UNUSED(self);
+    return 0;
+}
 
 int AddRelaxedInclude(struct argparse* self, const struct argparse_option* option)
-{ ((Options*)(option->data))->relaxedIncludes.push_back(*(const char**)option->value); UNUSED(self); return 0; }
+{
+    ((Options*)(option->data))->relaxedIncludes.push_back(*(const char**)option->value);
+    UNUSED(self);
+    return 0;
+}
 
 int AddSpirvExtension(struct argparse* self, const struct argparse_option* option)
-{ ((Options*)(option->data))->spirvExtensions.push_back(*(const char**)option->value); UNUSED(self); return 0; }
+{
+    ((Options*)(option->data))->spirvExtensions.push_back(*(const char**)option->value);
+    UNUSED(self);
+    return 0;
+}
 
 bool Options::Parse(int32_t argc, const char** argv)
 {
@@ -587,49 +625,49 @@ bool Options::Parse(int32_t argc, const char** argv)
     struct argparse_option options[] = {
         OPT_HELP(),
         OPT_GROUP("Required options:"),
-            OPT_STRING('p', "platform", &platformName, "DXBC, DXIL or SPIRV", nullptr, 0, 0),
-            OPT_STRING('c', "config", &config, "Configuration file with the list of shaders to compile", nullptr, 0, 0),
-            OPT_STRING('o', "out", &outputDir, "Output directory", nullptr, 0, 0),
-            OPT_BOOLEAN('b', "binary", &binary, "Output binary files", nullptr, 0, 0),
-            OPT_BOOLEAN('h', "header", &header, "Output header files", nullptr, 0, 0),
-            OPT_BOOLEAN('B', "binaryBlob", &binaryBlob, "Output binary blob files", nullptr, 0, 0),
-            OPT_BOOLEAN('H', "headerBlob", &headerBlob, "Output header blob files", nullptr, 0, 0),
-            OPT_STRING(0, "compiler", &compiler, "Path to a FXC/DXC/Slang compiler executable", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "slang", &slang, "Compiler is Slang", nullptr, 0, 0),
+        OPT_STRING('p', "platform", &platformName, "DXBC, DXIL or SPIRV", nullptr, 0, 0),
+        OPT_STRING('c', "config", &config, "Configuration file with the list of shaders to compile", nullptr, 0, 0),
+        OPT_STRING('o', "out", &outputDir, "Output directory", nullptr, 0, 0),
+        OPT_BOOLEAN('b', "binary", &binary, "Output binary files", nullptr, 0, 0),
+        OPT_BOOLEAN('h', "header", &header, "Output header files", nullptr, 0, 0),
+        OPT_BOOLEAN('B', "binaryBlob", &binaryBlob, "Output binary blob files", nullptr, 0, 0),
+        OPT_BOOLEAN('H', "headerBlob", &headerBlob, "Output header blob files", nullptr, 0, 0),
+        OPT_STRING(0, "compiler", &compiler, "Path to a FXC/DXC/Slang compiler executable", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "slang", &slang, "Compiler is Slang", nullptr, 0, 0),
         OPT_GROUP("Compiler settings:"),
-            OPT_STRING('m', "shaderModel", &shaderModel, "Shader model for DXIL/SPIRV (always SM 5.0 for DXBC)", nullptr, 0, 0),
-            OPT_INTEGER('O', "optimization", &optimizationLevel, "Optimization level 0-3 (default = 3, disabled = 0)", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "WX", &warningsAreErrors, "Maps to '-WX' DXC/FXC option: warnings are errors", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "allResourcesBound", &allResourcesBound, "Maps to '-all_resources_bound' DXC/FXC option: all resources bound", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "PDB", &pdb, "Output PDB files in 'out/PDB/' folder", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "embedPDB", &embedPdb, "Embed PDB with the shader binary", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "stripReflection", &stripReflection, "Maps to '-Qstrip_reflect' DXC/FXC option: strip reflection information from a shader binary", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "matrixRowMajor", &matrixRowMajor, "Maps to '-Zpr' DXC/FXC option: pack matrices in row-major order", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "hlsl2021", &hlsl2021, "Maps to '-HV 2021' DXC option: enable HLSL 2021 standard", nullptr, 0, 0),
-            OPT_STRING(0, "vulkanMemoryLayout", &vulkanMemoryLayout, "Maps to '-fvk-use-<VALUE>-layout' DXC options: dx, gl, scalar", nullptr, 0, 0),
+        OPT_STRING('m', "shaderModel", &shaderModel, "Shader model for DXIL/SPIRV (always SM 5.0 for DXBC)", nullptr, 0, 0),
+        OPT_INTEGER('O', "optimization", &optimizationLevel, "Optimization level 0-3 (default = 3, disabled = 0)", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "WX", &warningsAreErrors, "Maps to '-WX' DXC/FXC option: warnings are errors", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "allResourcesBound", &allResourcesBound, "Maps to '-all_resources_bound' DXC/FXC option: all resources bound", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "PDB", &pdb, "Output PDB files in 'out/PDB/' folder", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "embedPDB", &embedPdb, "Embed PDB with the shader binary", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "stripReflection", &stripReflection, "Maps to '-Qstrip_reflect' DXC/FXC option: strip reflection information from a shader binary", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "matrixRowMajor", &matrixRowMajor, "Maps to '-Zpr' DXC/FXC option: pack matrices in row-major order", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "hlsl2021", &hlsl2021, "Maps to '-HV 2021' DXC option: enable HLSL 2021 standard", nullptr, 0, 0),
+        OPT_STRING(0, "vulkanMemoryLayout", &vulkanMemoryLayout, "Maps to '-fvk-use-<VALUE>-layout' DXC options: dx, gl, scalar", nullptr, 0, 0),
         OPT_GROUP("Defines & include directories:"),
-            OPT_STRING('I', "include", &unused, "Include directory(s)", AddInclude, (intptr_t)this, 0),
-            OPT_STRING('D', "define", &unused, "Macro definition(s) in forms 'M=value' or 'M'", AddGlobalDefine, (intptr_t)this, 0),
+        OPT_STRING('I', "include", &unused, "Include directory(s)", AddInclude, (intptr_t)this, 0),
+        OPT_STRING('D', "define", &unused, "Macro definition(s) in forms 'M=value' or 'M'", AddGlobalDefine, (intptr_t)this, 0),
         OPT_GROUP("Other options:"),
-            OPT_BOOLEAN('f', "force", &force, "Treat all source files as modified", nullptr, 0, 0),
-            OPT_STRING(0, "sourceDir", &sourceDir, "Source code directory", nullptr, 0, 0),
-            OPT_STRING(0, "relaxedInclude", &unused, "Include file(s) not invoking re-compilation", AddRelaxedInclude, (intptr_t)this, 0),
-            OPT_STRING(0, "outputExt", &outputExt, "Extension for output files, default is one of .dxbc, .dxil, .spirv", AddRelaxedInclude, (intptr_t)this, 0),
-            OPT_BOOLEAN(0, "serial", &serial, "Disable multi-threading", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "flatten", &flatten, "Flatten source directory structure in the output directory", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "continue", &continueOnError, "Continue compilation if an error is occured", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "useAPI", &useAPI, "Use FXC (d3dcompiler) or DXC (dxcompiler) API explicitly (Windows only)", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "colorize", &colorize, "Colorize console output", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "verbose", &verbose, "Print commands before they are executed", nullptr, 0, 0),
-            OPT_INTEGER(0, "retryCount", &retryCount, "Retry count for compilation task sub-process failures", nullptr, 0, 0),
+        OPT_BOOLEAN('f', "force", &force, "Treat all source files as modified", nullptr, 0, 0),
+        OPT_STRING(0, "sourceDir", &sourceDir, "Source code directory", nullptr, 0, 0),
+        OPT_STRING(0, "relaxedInclude", &unused, "Include file(s) not invoking re-compilation", AddRelaxedInclude, (intptr_t)this, 0),
+        OPT_STRING(0, "outputExt", &outputExt, "Extension for output files, default is one of .dxbc, .dxil, .spirv", AddRelaxedInclude, (intptr_t)this, 0),
+        OPT_BOOLEAN(0, "serial", &serial, "Disable multi-threading", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "flatten", &flatten, "Flatten source directory structure in the output directory", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "continue", &continueOnError, "Continue compilation if an error is occured", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "useAPI", &useAPI, "Use FXC (d3dcompiler) or DXC (dxcompiler) API explicitly (Windows only)", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "colorize", &colorize, "Colorize console output", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "verbose", &verbose, "Print commands before they are executed", nullptr, 0, 0),
+        OPT_INTEGER(0, "retryCount", &retryCount, "Retry count for compilation task sub-process failures", nullptr, 0, 0),
         OPT_GROUP("SPIRV options:"),
-            OPT_STRING(0, "vulkanVersion", &vulkanVersion, "Vulkan environment version, maps to '-fspv-target-env' (default = 1.3)", nullptr, 0, 0),
-            OPT_STRING(0, "spirvExt", &unused, "Maps to '-fspv-extension' option: add SPIR-V extension permitted to use", AddSpirvExtension, (intptr_t)this, 0),
-            OPT_INTEGER(0, "sRegShift", &sRegShift, "SPIRV: register shift for sampler (s#) resources", nullptr, 0, 0),
-            OPT_INTEGER(0, "tRegShift", &tRegShift, "SPIRV: register shift for texture (t#) resources", nullptr, 0, 0),
-            OPT_INTEGER(0, "bRegShift", &bRegShift, "SPIRV: register shift for constant (b#) resources", nullptr, 0, 0),
-            OPT_INTEGER(0, "uRegShift", &uRegShift, "SPIRV: register shift for UAV (u#) resources", nullptr, 0, 0),
-            OPT_BOOLEAN(0, "noRegShifts", &noRegShifts, "Don't specify any register shifts for the compiler", nullptr, 0, 0),
+        OPT_STRING(0, "vulkanVersion", &vulkanVersion, "Vulkan environment version, maps to '-fspv-target-env' (default = 1.3)", nullptr, 0, 0),
+        OPT_STRING(0, "spirvExt", &unused, "Maps to '-fspv-extension' option: add SPIR-V extension permitted to use", AddSpirvExtension, (intptr_t)this, 0),
+        OPT_INTEGER(0, "sRegShift", &sRegShift, "SPIRV: register shift for sampler (s#) resources", nullptr, 0, 0),
+        OPT_INTEGER(0, "tRegShift", &tRegShift, "SPIRV: register shift for texture (t#) resources", nullptr, 0, 0),
+        OPT_INTEGER(0, "bRegShift", &bRegShift, "SPIRV: register shift for constant (b#) resources", nullptr, 0, 0),
+        OPT_INTEGER(0, "uRegShift", &uRegShift, "SPIRV: register shift for UAV (u#) resources", nullptr, 0, 0),
+        OPT_BOOLEAN(0, "noRegShifts", &noRegShifts, "Don't specify any register shifts for the compiler", nullptr, 0, 0),
         OPT_END(),
     };
 
@@ -637,14 +675,13 @@ bool Options::Parse(int32_t argc, const char** argv)
         "ShaderMake.exe -p {DXBC|DXIL|SPIRV} --binary [--header --blob] -c \"path/to/config\"\n"
         "\t-o \"path/to/output\" --compiler \"path/to/compiler\" [other options]\n"
         "\t-D DEF1 -D DEF2=1 ... -I \"path1\" -I \"path2\" ...",
-        nullptr
-    };
+        nullptr};
 
     struct argparse argparse;
     argparse_init(&argparse, options, usages, 0);
     argparse_describe(&argparse, nullptr, "\nMulti-threaded shader compiling & processing tool");
     argparse_parse(&argparse, argc, argv);
-    
+
 #ifndef _WIN32
     useAPI = false;
 #endif
@@ -689,7 +726,7 @@ bool Options::Parse(int32_t argc, const char** argv)
         Printf(RED "ERROR: Compiler '%s' does not exist!\n", compiler);
         return false;
     }
-    
+
     if (slang && useAPI)
     {
         Printf(RED "ERROR: Use of Slang with --useAPI is not implemented.\n");
@@ -728,13 +765,13 @@ bool Options::Parse(int32_t argc, const char** argv)
         return false;
     }
 
-    if (g_Options.vulkanMemoryLayout && 
+    if (g_Options.vulkanMemoryLayout &&
         strcmp(g_Options.vulkanMemoryLayout, "dx") != 0 &&
-        strcmp(g_Options.vulkanMemoryLayout, "gl") != 0 && 
+        strcmp(g_Options.vulkanMemoryLayout, "gl") != 0 &&
         strcmp(g_Options.vulkanMemoryLayout, "scalar") != 0)
     {
         Printf(RED "ERROR: Unsupported value '%s' for --vulkanMemoryLayout! Only 'dx', 'gl' and 'scalar' are supported.\n",
-            g_Options.vulkanMemoryLayout);
+               g_Options.vulkanMemoryLayout);
         return false;
     }
 
@@ -766,13 +803,17 @@ bool Options::Parse(int32_t argc, const char** argv)
 }
 
 int AddLocalDefine(struct argparse* self, const struct argparse_option* option)
-{ ((ConfigLine*)(option->data))->defines.push_back(*(const char**)option->value); UNUSED(self); return 0; }
+{
+    ((ConfigLine*)(option->data))->defines.push_back(*(const char**)option->value);
+    UNUSED(self);
+    return 0;
+}
 
 bool ConfigLine::Parse(int32_t argc, const char** argv)
 {
     source = argv[0];
 
-    const char* unused = nullptr; // storage for the callback
+    const char*            unused    = nullptr; // storage for the callback
     struct argparse_option options[] = {
         OPT_STRING('T', "profile", &profile, "Shader profile", nullptr, 0, 0),
         OPT_STRING('E', "entryPoint", &entryPoint, "(Optional) entry point", nullptr, 0, 0),
@@ -785,8 +826,7 @@ bool ConfigLine::Parse(int32_t argc, const char** argv)
 
     static const char* usages[] = {
         "path/to/shader -T profile [-E entry -O{0|1|2|3} -o \"output/subdirectory\" --outputSuffix \"suffix\" -D DEF1={0,1} -D DEF2={0,1,2} -D DEF3 ...]",
-        nullptr
-    };
+        nullptr};
 
     struct argparse argparse;
     argparse_init(&argparse, options, usages, 0);
@@ -823,9 +863,9 @@ void TokenizeDefineStrings(vector<string>& in, vector<D3D_SHADER_MACRO>& out)
     for (const string& defineString : in)
     {
         D3D_SHADER_MACRO& define = out.emplace_back();
-        char* s = (char*)defineString.c_str(); // IMPORTANT: "defineString" gets split into tokens divided by '\0'
-        define.Name = strtok(s, "=");
-        define.Definition = strtok(nullptr, "=");
+        char*             s      = (char*)defineString.c_str(); // IMPORTANT: "defineString" gets split into tokens divided by '\0'
+        define.Name              = strtok(s, "=");
+        define.Definition        = strtok(nullptr, "=");
     }
 }
 
@@ -844,9 +884,10 @@ public:
     ~FxcIncluder()
     {}
 
-    STDMETHOD(Open)(THIS_ D3D_INCLUDE_TYPE includeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes)
+    STDMETHOD(Open)
+    (THIS_ D3D_INCLUDE_TYPE includeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID* ppData, UINT* pBytes)
     {
-        // TODO: an error in an include file gets reported using relative path with recent WinSDKs, what makes it 
+        // TODO: an error in an include file gets reported using relative path with recent WinSDKs, what makes it
         // "unclickable" from the Visual Studio output window. It doesn't look like an issue of "FxcIncluder",
         // because the issue is here even with "D3D_COMPILE_STANDARD_FILE_INCLUDE", but "FXC.exe" works fine.
 
@@ -876,7 +917,7 @@ public:
 
         // Load file
         uint32_t len = GetFileLength(stream);
-        char* buf = (char*)malloc(len);
+        char*    buf = (char*)malloc(len);
         if (!buf)
             return E_FAIL;
 
@@ -892,7 +933,8 @@ public:
         return S_OK;
     }
 
-    STDMETHOD(Close)(THIS_ LPCVOID pData)
+    STDMETHOD(Close)
+    (THIS_ LPCVOID pData)
     {
         if (pData)
         {
@@ -920,7 +962,7 @@ void FxcCompile()
     };
 
     vector<D3D_SHADER_MACRO> optionsDefines;
-    vector<string> tokenizedDefines = g_Options.defines;
+    vector<string>           tokenizedDefines = g_Options.defines;
     TokenizeDefineStrings(tokenizedDefines, optionsDefines);
 
     while (!g_Terminate)
@@ -952,11 +994,11 @@ void FxcCompile()
         fs::path sourceFile = g_Options.configFile.parent_path() / g_Options.sourceDir / taskData.source;
 
         FxcIncluder fxcIncluder(sourceFile);
-        string profile = taskData.profile + "_5_0";
+        string      profile = taskData.profile + "_5_0";
 
         ComPtr<ID3DBlob> codeBlob;
         ComPtr<ID3DBlob> errorBlob;
-        HRESULT hr = D3DCompileFromFile(
+        HRESULT          hr = D3DCompileFromFile(
             sourceFile.wstring().c_str(),
             defines.data(),
             &fxcIncluder,
@@ -985,18 +1027,18 @@ void FxcCompile()
             // This struct represents the first four bytes of the name blob
             struct ShaderDebugName
             {
-                uint16_t Flags;       // Reserved, must be set to zero
-                uint16_t NameLength;  // Length of the debug name, without null terminator
-                                      // Followed by NameLength bytes of the UTF-8-encoded name
-                                      // Followed by a null terminator
-                                      // Followed by [0-3] zero bytes to align to a 4-byte boundary
+                uint16_t Flags;      // Reserved, must be set to zero
+                uint16_t NameLength; // Length of the debug name, without null terminator
+                                     // Followed by NameLength bytes of the UTF-8-encoded name
+                                     // Followed by a null terminator
+                                     // Followed by [0-3] zero bytes to align to a 4-byte boundary
             };
 
             auto pDebugNameData = (const ShaderDebugName*)(pdbName->GetBufferPointer());
-            auto pName = (const char*)(pDebugNameData + 1);
+            auto pName          = (const char*)(pDebugNameData + 1);
 
             string file = fs::path(taskData.outputFileWithoutExt).parent_path().string() + "/" + PDB_DIR + "/" + pName;
-            FILE* fp = fopen(file.c_str(), "wb");
+            FILE*  fp   = fopen(file.c_str(), "wb");
             if (fp)
             {
                 fwrite(pdb->GetBufferPointer(), pdb->GetBufferSize(), 1, fp);
@@ -1066,13 +1108,13 @@ void DxcCompile()
 
     // TODO: is a global instance thread safe?
     ComPtr<IDxcCompiler3> dxcCompiler;
-    HRESULT hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&dxcCompiler));
+    HRESULT               hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&dxcCompiler));
     if (FAILED(hr))
     {
         // Print a message explaining that we cannot compile anything.
         // This can happen when the user specifies a DXC version that is too old.
         lock_guard<mutex> guard(g_TaskMutex);
-        static bool once = true;
+        static bool       once = true;
         if (once)
         {
             Printf(RED "ERROR: Cannot create an instance of IDxcCompiler3, HRESULT = 0x%08x (%s)\n", hr, std::system_category().message(hr).c_str());
@@ -1089,7 +1131,7 @@ void DxcCompile()
         // Also print an error message.
         // Not sure if this ever happens or all such cases are handled by the condition above, but let's be safe.
         lock_guard<mutex> guard(g_TaskMutex);
-        static bool once = true;
+        static bool       once = true;
         if (once)
         {
             Printf(RED "ERROR: Cannot create an instance of IDxcUtils, HRESULT = 0x%08x (%s)\n", hr, std::system_category().message(hr).c_str());
@@ -1113,12 +1155,12 @@ void DxcCompile()
         }
 
         // Compiling the shader
-        fs::path sourceFile = g_Options.configFile.parent_path() / g_Options.sourceDir / taskData.source;
-        wstring wsourceFile = sourceFile.wstring();
+        fs::path sourceFile  = g_Options.configFile.parent_path() / g_Options.sourceDir / taskData.source;
+        wstring  wsourceFile = sourceFile.wstring();
 
-        ComPtr<IDxcBlob> codeBlob;
+        ComPtr<IDxcBlob>         codeBlob;
         ComPtr<IDxcBlobEncoding> errorBlob;
-        bool isSucceeded = false;
+        bool                     isSucceeded = false;
 
         ComPtr<IDxcBlobEncoding> sourceBlob;
         hr = dxcUtils->LoadFile(wsourceFile.c_str(), nullptr, &sourceBlob);
@@ -1126,8 +1168,7 @@ void DxcCompile()
         if (SUCCEEDED(hr))
         {
             vector<wstring> args;
-            args.reserve(16 + (g_Options.defines.size() + taskData.defines.size() + g_Options.includeDirs.size()) * 2
-                + (g_Options.platform == SPIRV ? regShifts.size() + g_Options.spirvExtensions.size() : 0));
+            args.reserve(16 + (g_Options.defines.size() + taskData.defines.size() + g_Options.includeDirs.size()) * 2 + (g_Options.platform == SPIRV ? regShifts.size() + g_Options.spirvExtensions.size() : 0));
 
             // Source file
             args.push_back(wsourceFile);
@@ -1181,13 +1222,13 @@ void DxcCompile()
                 args.push_back(L"2021");
             }
 
-            if (g_Options.pdb||g_Options.embedPdb)
+            if (g_Options.pdb || g_Options.embedPdb)
             {
                 // TODO: for SPIRV PDB can only be embedded, GetOutput(DXC_OUT_PDB) silently fails...
                 args.push_back(L"-Zi");
                 args.push_back(L"-Zsb"); // only binary code affects hash
             }
-            
+
             if (g_Options.embedPdb)
                 args.push_back(L"-Qembed_debug");
 
@@ -1232,8 +1273,8 @@ void DxcCompile()
 
             // Compiling the shader
             DxcBuffer sourceBuffer = {};
-            sourceBuffer.Ptr = sourceBlob->GetBufferPointer();
-            sourceBuffer.Size = sourceBlob->GetBufferSize();
+            sourceBuffer.Ptr       = sourceBlob->GetBufferPointer();
+            sourceBuffer.Size      = sourceBlob->GetBufferSize();
 
             ComPtr<IDxcIncludeHandler> pDefaultIncludeHandler;
             dxcUtils->CreateDefaultIncludeHandler(&pDefaultIncludeHandler);
@@ -1255,12 +1296,12 @@ void DxcCompile()
             // Dump PDB
             if (isSucceeded && g_Options.pdb)
             {
-                ComPtr<IDxcBlob> pdb;
+                ComPtr<IDxcBlob>      pdb;
                 ComPtr<IDxcBlobUtf16> pdbName;
                 if (SUCCEEDED(dxcResult->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(&pdb), &pdbName)))
                 {
                     wstring file = fs::path(taskData.outputFileWithoutExt).parent_path().wstring() + L"/" + _L(PDB_DIR) + L"/" + wstring(pdbName->GetStringPointer());
-                    FILE* fp = _wfopen(file.c_str(), L"wb");
+                    FILE*   fp   = _wfopen(file.c_str(), L"wb");
                     if (fp)
                     {
                         fwrite(pdb->GetBufferPointer(), pdb->GetBufferSize(), 1, fp);
@@ -1314,7 +1355,7 @@ bool ReadBinaryFile(const char* file, vector<uint8_t>& outData)
 
     // Read the file
     size_t bytesRead = fread(outData.data(), 1, binarySize, stream);
-    bool success = (bytesRead == binarySize);
+    bool   success   = (bytesRead == binarySize);
 
     fclose(stream);
     return success;
@@ -1342,26 +1383,26 @@ void ExeCompile()
             g_TaskData.pop_back();
         }
 
-        bool convertBinaryOutputToHeader = false;
-        string outputFile = taskData.outputFileWithoutExt + g_OutputExt;
+        bool   convertBinaryOutputToHeader = false;
+        string outputFile                  = taskData.outputFileWithoutExt + g_OutputExt;
 
         // Building command line
         ostringstream cmd;
         {
-            #ifdef _WIN32 // workaround for Windows
-                cmd << "%COMPILER%";
-            #else
-                cmd << "$COMPILER";
-            #endif
+#ifdef _WIN32 // workaround for Windows
+            cmd << "%COMPILER%";
+#else
+            cmd << "$COMPILER";
+#endif
 
             if (g_Options.slang)
             {
                 if (g_Options.header || (g_Options.headerBlob && taskData.combinedDefines.empty()))
                     convertBinaryOutputToHeader = true;
-                
+
                 // Profile
                 cmd << " -profile " << taskData.profile << "_" << g_Options.shaderModel;
-                
+
                 // Target/platform
                 cmd << " -target " << g_PlatformSlangTargets[g_Options.platform];
 
@@ -1398,13 +1439,13 @@ void ExeCompile()
                 if (g_Options.platform == SPIRV)
                 {
                     if (g_Options.vulkanMemoryLayout)
-                    {   
+                    {
                         if (strcmp(g_Options.vulkanMemoryLayout, "scalar") == 0)
                             cmd << " -force-glsl-scalar-layout";
                         else if (strcmp(g_Options.vulkanMemoryLayout, "gl") == 0)
                             cmd << " -fvk-use-gl-layout";
                     }
-                    
+
                     if (!g_Options.noRegShifts)
                     {
                         for (uint32_t space = 0; space < SPIRV_SPACES_NUM; space++)
@@ -1528,7 +1569,7 @@ void ExeCompile()
 
         // Compiling the shader
         ostringstream msg;
-        FILE* pipe = popen(cmd.str().c_str(), "r");
+        FILE*         pipe = popen(cmd.str().c_str(), "r");
 
         bool isSucceeded = false, willRetry = false;
         if (pipe)
@@ -1559,14 +1600,14 @@ void ExeCompile()
             else if (g_TaskRetryCount > 0 && (childProcessError || commandShellError))
                 willRetry = true;
         }
-        
+
         // Slang cannot produce .h files directly, so we convert its binary output to .h here if needed
         if (isSucceeded && convertBinaryOutputToHeader)
         {
             vector<uint8_t> buffer;
             if (ReadBinaryFile(outputFile.c_str(), buffer))
             {
-                string headerFile = taskData.outputFileWithoutExt + g_OutputExt + ".h";
+                string            headerFile = taskData.outputFileWithoutExt + g_OutputExt + ".h";
                 DataOutputContext context(headerFile.c_str(), true);
                 if (context.stream)
                 {
@@ -1622,7 +1663,7 @@ bool GetHierarchicalUpdateTime(const fs::path& file, list<fs::path>& callStack, 
 
     callStack.push_front(file);
 
-    fs::path path = file.parent_path();
+    fs::path           path                   = file.parent_path();
     fs::file_time_type hierarchicalUpdateTime = fs::last_write_time(file);
 
     for (string line; getline(stream, line);)
@@ -1636,7 +1677,7 @@ bool GetHierarchicalUpdateTime(const fs::path& file, list<fs::path>& callStack, 
         if (find(g_Options.relaxedIncludes.begin(), g_Options.relaxedIncludes.end(), includeName) != g_Options.relaxedIncludes.end())
             continue;
 
-        bool isFound = false;
+        bool     isFound     = false;
         fs::path includeFile = path / includeName;
         if (fs::exists(includeFile))
             isFound = true;
@@ -1672,7 +1713,7 @@ bool GetHierarchicalUpdateTime(const fs::path& file, list<fs::path>& callStack, 
     callStack.pop_front();
 
     g_HierarchicalUpdateTimes[file] = hierarchicalUpdateTime;
-    outTime = hierarchicalUpdateTime;
+    outTime                         = hierarchicalUpdateTime;
 
     return true;
 }
@@ -1680,7 +1721,7 @@ bool GetHierarchicalUpdateTime(const fs::path& file, list<fs::path>& callStack, 
 bool ProcessConfigLine(uint32_t lineIndex, const string& line, const fs::file_time_type& configTime)
 {
     // Tokenize
-    string lineCopy = line;
+    string              lineCopy = line;
     vector<const char*> tokens;
     TokenizeConfigLine((char*)lineCopy.c_str(), tokens);
 
@@ -1703,7 +1744,7 @@ bool ProcessConfigLine(uint32_t lineIndex, const string& line, const fs::file_ti
     for (size_t i = 0; i < configLine.defines.size(); i++)
     {
         combinedDefines += configLine.defines[i];
-        if (i != configLine.defines.size() - 1 )
+        if (i != configLine.defines.size() - 1)
             combinedDefines += " ";
     }
 
@@ -1714,7 +1755,7 @@ bool ProcessConfigLine(uint32_t lineIndex, const string& line, const fs::file_ti
         shaderName = shaderName.filename();
     if (strcmp(configLine.entryPoint, "main"))
         shaderName += "_" + string(configLine.entryPoint);
-    if(configLine.outputSuffix)
+    if (configLine.outputSuffix)
         shaderName += string(configLine.outputSuffix);
 
     // Compiled permutation name
@@ -1735,7 +1776,7 @@ bool ProcessConfigLine(uint32_t lineIndex, const string& line, const fs::file_ti
         outputDir /= configLine.outputDir;
 
     // Create intermediate output directories
-    bool force = g_Options.force;
+    bool     force   = g_Options.force;
     fs::path endPath = outputDir / shaderName.parent_path();
     if (g_Options.pdb)
         endPath /= PDB_DIR;
@@ -1811,9 +1852,9 @@ bool ProcessConfigLine(uint32_t lineIndex, const string& line, const fs::file_ti
 
     if (!force)
     {
-        list<fs::path> callStack;
+        list<fs::path>     callStack;
         fs::file_time_type sourceTime;
-        fs::path sourceFile = g_Options.configFile.parent_path() / g_Options.sourceDir / configLine.source;
+        fs::path           sourceFile = g_Options.configFile.parent_path() / g_Options.sourceDir / configLine.source;
         if (!GetHierarchicalUpdateTime(sourceFile, callStack, sourceTime))
             return false;
 
@@ -1823,28 +1864,28 @@ bool ProcessConfigLine(uint32_t lineIndex, const string& line, const fs::file_ti
     }
 
     // Prepare a task
-    string outputFileWithoutExt = PathToString(outputDir / permutationName);
-    uint32_t optimizationLevel = configLine.optimizationLevel == USE_GLOBAL_OPTIMIZATION_LEVEL ? g_Options.optimizationLevel : configLine.optimizationLevel;
-    optimizationLevel = min(optimizationLevel, 3u);
+    string   outputFileWithoutExt = PathToString(outputDir / permutationName);
+    uint32_t optimizationLevel    = configLine.optimizationLevel == USE_GLOBAL_OPTIMIZATION_LEVEL ? g_Options.optimizationLevel : configLine.optimizationLevel;
+    optimizationLevel             = min(optimizationLevel, 3u);
 
-    TaskData& taskData = g_TaskData.emplace_back();
-    taskData.source = configLine.source;
-    taskData.entryPoint = configLine.entryPoint;
-    taskData.profile = configLine.profile;
-    taskData.combinedDefines = combinedDefines;
+    TaskData& taskData            = g_TaskData.emplace_back();
+    taskData.source               = configLine.source;
+    taskData.entryPoint           = configLine.entryPoint;
+    taskData.profile              = configLine.profile;
+    taskData.combinedDefines      = combinedDefines;
     taskData.outputFileWithoutExt = outputFileWithoutExt;
-    taskData.defines = configLine.defines;
-    taskData.optimizationLevel = optimizationLevel;
+    taskData.defines              = configLine.defines;
+    taskData.optimizationLevel    = optimizationLevel;
 
     // Gather blobs
     if (g_Options.IsBlob())
     {
-        string blobName = PathToString(outputDir / shaderName);
-        vector<BlobEntry>& entries = g_ShaderBlobs[blobName];
+        string             blobName = PathToString(outputDir / shaderName);
+        vector<BlobEntry>& entries  = g_ShaderBlobs[blobName];
 
         BlobEntry entry;
         entry.permutationFileWithoutExt = outputFileWithoutExt;
-        entry.combinedDefines = combinedDefines;
+        entry.combinedDefines           = combinedDefines;
         entries.push_back(entry);
     }
 
@@ -1906,9 +1947,7 @@ bool CreateBlob(const string& blobName, const vector<BlobEntry>& entries, bool u
         outputContext.WriteTextPreamble(name.c_str());
     }
 
-    ShaderMake::WriteFileCallback writeFileCallback = useTextOutput
-        ? &DataOutputContext::WriteDataAsTextCallback
-        : &DataOutputContext::WriteDataAsBinaryCallback;
+    ShaderMake::WriteFileCallback writeFileCallback = useTextOutput ? &DataOutputContext::WriteDataAsTextCallback : &DataOutputContext::WriteDataAsBinaryCallback;
 
     // Write "blob" header
     if (!ShaderMake::WriteFileHeader(writeFileCallback, &outputContext))
@@ -1937,7 +1976,7 @@ bool CreateBlob(const string& blobName, const vector<BlobEntry>& entries, bool u
         }
         else
             success = false;
-        
+
         if (!success)
             break;
     }
@@ -1987,11 +2026,11 @@ int32_t main(int32_t argc, const char** argv)
     char envBuf[1024];
     if (!g_Options.useAPI)
     {
-        #ifdef _WIN32 // workaround for Windows
-            snprintf(envBuf, sizeof(envBuf), "COMPILER=\"%s\"", g_Options.compiler);
-        #else
-            snprintf(envBuf, sizeof(envBuf), "COMPILER=%s", g_Options.compiler);
-        #endif
+#ifdef _WIN32 // workaround for Windows
+        snprintf(envBuf, sizeof(envBuf), "COMPILER=\"%s\"", g_Options.compiler);
+#else
+        snprintf(envBuf, sizeof(envBuf), "COMPILER=%s", g_Options.compiler);
+#endif
 
         if (putenv(envBuf) != 0)
             return 1;
@@ -2008,15 +2047,15 @@ int32_t main(int32_t argc, const char** argv)
         char const* dllName = nullptr;
         switch (g_Options.platform)
         {
-        case DXIL:
-        case SPIRV:
-            dllName = "dxcompiler.dll";
-            break;
-        case DXBC:
-            dllName = "d3dcompiler_47.dll";
-            break;
-        default:
-            break;
+            case DXIL:
+            case SPIRV:
+                dllName = "dxcompiler.dll";
+                break;
+            case DXBC:
+                dllName = "d3dcompiler_47.dll";
+                break;
+            default:
+                break;
         }
         if (dllName != nullptr)
         {
@@ -2032,7 +2071,7 @@ int32_t main(int32_t argc, const char** argv)
 
     { // Gather shader permutations
         fs::file_time_type configTime = fs::last_write_time(g_Options.configFile);
-        configTime = max(configTime, fs::last_write_time(self));
+        configTime                    = max(configTime, fs::last_write_time(self));
 
         ifstream configStream(g_Options.configFile);
 
@@ -2058,7 +2097,7 @@ int32_t main(int32_t argc, const char** argv)
                 pos += line.substr(pos).find_first_not_of(' ');
 
                 string define = line.substr(pos);
-                bool state = blocks.back() && find(g_Options.defines.begin(), g_Options.defines.end(), define) != g_Options.defines.end();
+                bool   state  = blocks.back() && find(g_Options.defines.begin(), g_Options.defines.end(), define) != g_Options.defines.end();
 
                 blocks.push_back(state);
             }
@@ -2093,9 +2132,9 @@ int32_t main(int32_t argc, const char** argv)
     {
         Printf(WHITE "Using compiler: %s\n", g_Options.compiler);
 
-        g_OriginalTaskCount = (uint32_t)g_TaskData.size();
+        g_OriginalTaskCount  = (uint32_t)g_TaskData.size();
         g_ProcessedTaskCount = 0;
-        g_FailedTaskCount = 0;
+        g_FailedTaskCount    = 0;
 
         // Retry limit for compilation task sub-process failures that can occur when threading
         g_TaskRetryCount = g_Options.retryCount;
@@ -2140,7 +2179,7 @@ int32_t main(int32_t argc, const char** argv)
                 {
                     const string blobBaseName = fs::path(blobName).stem().generic_string();
                     Printf(RED "ERROR: Cannot create a blob for shader %s where some permutation(s) have no definitions!",
-                        blobBaseName.c_str());
+                           blobBaseName.c_str());
                     invalidEntry = true;
                     break;
                 }
