@@ -26,6 +26,12 @@
 #include <string>
 #include <cstdint>
 
+#ifdef _WIN32
+#    define EXPORT_DLL __declspec(dllexport)
+#else
+#    define EXPORT_DLL
+#endif
+
 namespace ShaderMake
 {
 
@@ -41,6 +47,7 @@ struct ShaderBlobEntry
     uint32_t dataSize;
 };
 
+EXPORT_DLL
 bool FindPermutationInBlob(
     const void* blob,
     size_t blobSize,
@@ -50,12 +57,14 @@ bool FindPermutationInBlob(
     size_t* pSize
 );
 
+EXPORT_DLL
 void EnumeratePermutationsInBlob(
     const void* blob,
     size_t blobSize,
     std::vector<std::string>& permutations
 );
 
+EXPORT_DLL
 std::string FormatShaderNotFoundMessage(
     const void* blob,
     size_t blobSize,
@@ -65,11 +74,13 @@ std::string FormatShaderNotFoundMessage(
 
 typedef bool (*WriteFileCallback)(const void* data, size_t size, void* context);
 
+EXPORT_DLL
 bool WriteFileHeader(
 	WriteFileCallback write,
     void* context
 );
 
+EXPORT_DLL
 bool WritePermutation(
 	WriteFileCallback write,
     void* context,
