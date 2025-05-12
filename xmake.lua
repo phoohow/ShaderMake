@@ -9,6 +9,9 @@ target("ShaderBlob")
         public = true
     })
     add_files("src/ShaderBlob.cpp")
+    if is_plat("windows") then
+        add_defines("SHADERBLOB_EXPORT_DLL")
+    end
 target_end()
 
 target("ShaderMake")
@@ -34,6 +37,7 @@ target("ShaderMakeLib")
     add_files("src/argparse.c", "src/ShaderMakeLib.cpp")
     add_deps("ShaderBlob")
     if is_plat("windows") then
+        add_defines("SHADERMAKE_EXPORT_DLL")
         add_links("d3dcompiler", "dxcompiler", "delayimp")
     end
 target_end()
